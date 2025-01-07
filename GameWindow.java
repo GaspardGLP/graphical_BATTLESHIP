@@ -63,6 +63,7 @@ public class GameWindow extends JFrame implements ActionListener {
                 grid[i][j].setBackground(isPlayerGrid ? Color.CYAN : Color.LIGHT_GRAY);
                 grid[i][j].addActionListener(this);
                 grid[i][j].putClientProperty("hasShip", false);
+                grid[i][j].putClientProperty("hit", false);
                 panel.add(grid[i][j]);
             }
         }
@@ -85,6 +86,7 @@ public class GameWindow extends JFrame implements ActionListener {
                 button.setBackground(Color.CYAN);
                 button.setEnabled(true);
                 button.putClientProperty("hasShip", false);
+                button.putClientProperty("hit", false);
             }
         }
     }
@@ -104,15 +106,7 @@ public class GameWindow extends JFrame implements ActionListener {
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 if (source == playerGrid[i][j]) {
-                    // Essayer de placer le bateau sur la grille
                     if (player.placeShip(i, j, shipSizes[shipsPlaced], horizontal, playerGrid)) {
-                        // Colorier les cases où le bateau est placé
-                        for (int k = 0; k < shipSizes[shipsPlaced]; k++) {
-                            int r = i + (horizontal ? 0 : k);
-                            int c = j + (horizontal ? k : 0);
-                            playerGrid[r][c].setBackground(Color.DARK_GRAY); // Changer la couleur pour afficher le bateau
-                            playerGrid[r][c].setEnabled(false); // Empêcher de placer d'autres bateaux sur ces cases
-                        }
                         shipsPlaced++;
                         if (shipsPlaced == shipSizes.length) {
                             placingShips = false;
@@ -126,67 +120,43 @@ public class GameWindow extends JFrame implements ActionListener {
         }
     }
 
-
     private void handlePlayerTurn(JButton source) {
-        // Vérifier si c'est le tour du joueur
         if (!playerTurn) {
             JOptionPane.showMessageDialog(this, "Ce n'est pas votre tour !");
-            return;  // Si ce n'est pas le tour du joueur, on ignore l'action
+            return;
         }
-
-        // Le joueur attaque l'adversaire
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 if (source == opponentGrid[i][j]) {
-                    // L'attaque est effectuée ici
-                    player.attack(i, j, opponentGrid, opponent);
-
-                    // Vérification si l'adversaire a perdu toutes ses cellules de bateau
-                    if (opponent.getShipCells() == 0) {
+                    if (!player.attack(i, j, opponentGrid, opponent)) {
+                        return; // Ignore les clics sur les cellules déjà attaquées
+                    }
+                    if (opponent.getShipCells() == 0) { // Condition de victoire
                         JOptionPane.showMessageDialog(this, "Vous avez gagné !");
                         resetGame();
                         return;
                     }
-
-                    // L'attaque est terminée, c'est maintenant au tour de l'IA
                     playerTurn = false;
-                    opponentMove();  // L'IA joue son tour
+                    opponentMove();
                     return;
                 }
             }
         }
     }
 
-
     private void opponentMove() {
-        // L'IA effectue un seul coup
-        if (player.getShipCells() == 0) {
-            // Le joueur a perdu, le jeu est terminé
-            JOptionPane.showMessageDialog(this, "Vous avez perdu !");
-            resetGame();
-            return;
+        while (true) {
+            int row = (int) (Math.random() * 10);
+            int col = (int) (Math.random() * 10);
+            if (player.attack(row, col, playerGrid, opponent)) {
+                break;
+            }
         }
-
-        // L'IA choisit une case aléatoire pour attaquer
-        int row = (int) (Math.random() * 10);
-        int col = (int) (Math.random() * 10);
-
-        // L'IA effectue l'attaque
-        boolean hit = player.attack(row, col, playerGrid, opponent);
-
-        // Si le joueur perd, réinitialisation du jeu
         if (player.getShipCells() == 0) {
             JOptionPane.showMessageDialog(this, "Vous avez perdu !");
             resetGame();
-            return;
+        } else {
+            playerTurn = true;
         }
-
-        // Mise à jour de l'état du jeu, le tour passe au joueur
-        playerTurn = true;
-
-        // Repeindre la fenêtre pour que l'état de l'interface soit bien mis à jour
-        SwingUtilities.invokeLater(() -> {
-            repaint();  // Repeindre pour signaler que c'est le tour du joueur
-        });
     }
 }
