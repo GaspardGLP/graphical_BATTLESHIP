@@ -128,21 +128,27 @@ public class GameWindow extends JFrame implements ActionListener {
 
 
     private void handlePlayerTurn(JButton source) {
+        // Vérifier si c'est le tour du joueur
         if (!playerTurn) {
             JOptionPane.showMessageDialog(this, "Ce n'est pas votre tour !");
-            return;  // Ne pas permettre de cliquer pendant le tour de l'IA
+            return;  // Si ce n'est pas le tour du joueur, on ignore l'action
         }
-        // Logique de l'attaque du joueur
+
+        // Le joueur attaque l'adversaire
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 if (source == opponentGrid[i][j]) {
+                    // L'attaque est effectuée ici
                     player.attack(i, j, opponentGrid, opponent);
+
+                    // Vérification si l'adversaire a perdu toutes ses cellules de bateau
                     if (opponent.getShipCells() == 0) {
                         JOptionPane.showMessageDialog(this, "Vous avez gagné !");
                         resetGame();
                         return;
                     }
-                    // Tour de l'IA après le coup du joueur
+
+                    // L'attaque est terminée, c'est maintenant au tour de l'IA
                     playerTurn = false;
                     opponentMove();  // L'IA joue son tour
                     return;
@@ -152,37 +158,35 @@ public class GameWindow extends JFrame implements ActionListener {
     }
 
 
-
     private void opponentMove() {
-        // Créer un SwingWorker pour gérer le mouvement de l'IA dans un thread séparé
-        SwingWorker<Void, Void> opponentWorker = new SwingWorker<Void, Void>() {
-            @Override
-            protected Void doInBackground() throws Exception {
-                // L'IA ne joue qu'un seul coup
-                int row = (int) (Math.random() * 10);
-                int col = (int) (Math.random() * 10);
-                boolean hit = false;
+        // L'IA effectue un seul coup
+        if (player.getShipCells() == 0) {
+            // Le joueur a perdu, le jeu est terminé
+            JOptionPane.showMessageDialog(this, "Vous avez perdu !");
+            resetGame();
+            return;
+        }
 
-                // L'IA continue à attaquer jusqu'à ce qu'elle touche un bateau
-                while (!hit) {
-                    // Essaie de toucher un bateau du joueur
-                    hit = player.attack(row, col, playerGrid, opponent);
-                }
+        // L'IA choisit une case aléatoire pour attaquer
+        int row = (int) (Math.random() * 10);
+        int col = (int) (Math.random() * 10);
 
-                // Vérification si le joueur a perdu
-                if (player.getShipCells() == 0) {
-                    SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(GameWindow.this, "Vous avez perdu !"));
-                    resetGame();
-                } else {
-                    // Mettre à jour `playerTurn` pour permettre au joueur de jouer
-                    SwingUtilities.invokeLater(() -> playerTurn = true);
-                }
+        // L'IA effectue l'attaque
+        boolean hit = player.attack(row, col, playerGrid, opponent);
 
-                return null;
-            }
-        };
+        // Si le joueur perd, réinitialisation du jeu
+        if (player.getShipCells() == 0) {
+            JOptionPane.showMessageDialog(this, "Vous avez perdu !");
+            resetGame();
+            return;
+        }
 
-        // Exécuter le travail de l'IA en arrière-plan
-        opponentWorker.execute();
+        // Mise à jour de l'état du jeu, le tour passe au joueur
+        playerTurn = true;
+
+        // Repeindre la fenêtre pour que l'état de l'interface soit bien mis à jour
+        SwingUtilities.invokeLater(() -> {
+            repaint();  // Repeindre pour signaler que c'est le tour du joueur
+        });
     }
 }
