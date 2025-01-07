@@ -1,7 +1,7 @@
+import javax.swing.*;
+
 public class BattleShipGameGUI {
     public static void main(String[] args) {
-        // Initialisation du jeu
-        GameWindow gameWindow = new GameWindow();
-        gameWindow.startGame();
+        SwingUtilities.invokeLater(GameWindow::new);
     }
 }
