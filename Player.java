@@ -1,17 +1,32 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
 public class Player {
-    private String name;
-    private Board board;
+    private final Board board;
 
-    public Player(String name) {
-        this.name = name;
-        this.board = new Board();
+    public Player() {
+        board = new Board();
     }
 
-    public String getName() {
-        return name;
+    public boolean placeShip(int row, int col, int size, boolean horizontal, JButton[][] grid) {
+        return board.placeShip(row, col, size, horizontal, grid);
     }
 
-    public Board getBoard() {
-        return board;
+    public boolean attack(int row, int col, JButton[][] grid, Player opponent) {
+        return board.attack(row, col, grid);
+    }
+
+    public void placeOpponentShips(int[] shipSizes, JButton[][] grid) {
+        board.placeOpponentShips(shipSizes, grid);
+    }
+
+    public void reset() {
+        board.clear();
+    }
+
+    public int getShipCells() {
+        return board.getRemainingShipCells();
     }
 }
