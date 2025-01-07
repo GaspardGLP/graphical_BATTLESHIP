@@ -1,7 +1,4 @@
 import javax.swing.*;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Player {
     private final Board board;
@@ -11,7 +8,7 @@ public class Player {
     }
 
     public boolean placeShip(int row, int col, int size, boolean horizontal, JButton[][] grid) {
-        return board.placeShip(row, col, size, horizontal, grid);
+        return board.placeShip(row, col, size, horizontal, grid, true);
     }
 
     public boolean attack(int row, int col, JButton[][] grid, Player opponent) {
